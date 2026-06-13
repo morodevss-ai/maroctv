@@ -49,8 +49,8 @@ const List<Channel> kChannels = [
   Channel(
     id: '2m',
     name: '2M Maroc',
-    url: 'https://cdn-01.live2.tv/streamers/2m/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/2M_logo.svg/200px-2M_logo.svg.png',
+    url: 'https://stream-lb.livemediama.com/2m-tnt/hls/master.m3u8',
+    logo: 'https://images.seeklogo.com/logo-png/31/1/chaine-2m-maroc-logo-png_seeklogo-310278.png',
     category: 'Moroccan',
   ),
   Channel(
