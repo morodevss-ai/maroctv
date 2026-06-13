@@ -1,0 +1,4 @@
+-keep class io.flutter.** { *; }
+-keep class com.google.android.exoplayer2.** { *; }
+-dontwarn com.google.android.exoplayer2.**
+-keepclasseswithmembernames class * { native <methods>; }
