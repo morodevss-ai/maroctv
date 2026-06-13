@@ -41,6 +41,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       widget.playlist[idx].url,
       headers: headers,
       liveStream: true,
+      videoFormat: BetterPlayerVideoFormat.hls,
       bufferingConfiguration: const BetterPlayerBufferingConfiguration(
         minBufferMs: 2000, maxBufferMs: 8000,
         bufferForPlaybackMs: 1000, bufferForPlaybackAfterRebufferMs: 2000,
