@@ -21,7 +21,7 @@ const Map<String, String> kBypassHeaders = {
 
 const List<Channel> kBuiltinChannels = [
   Channel(id:'al_aoula',name:'الأولى',url:'https://cdn-01.live2.tv/streamers/al-aoula/index.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Al_Aoula_logo.svg/200px-Al_Aoula_logo.svg.png',category:'Moroccan'),
-  Channel(id:'2m',name:'2M Maroz',url:'https://d2qh3gh0k5vp3v.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-n6pess5lwbghr/2M_ES.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/2M_logo.svg/200px-2M_logo.svg.png',category:'Moroccan'),
+  Channel(id:'2m',name:'2M Maroc',url:'https://d2qh3gh0k5vp3v.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-n6pess5lwbghr/2M_ES.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/2M_logo.svg/200px-2M_logo.svg.png',category:'Moroccan'),
   Channel(id:'medi1',name:'Medi1 TV',url:'https://d2qh3gh0k5vp3v.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-n6pess5lwbghr/2M_ES.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Medi1tv_logo.svg/200px-Medi1tv_logo.svg.png',category:'Moroccan'),
   Channel(id:'laayoune',name:'Laâyoune TV',url:'https://d2qh3gh0k5vp3v.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-n6pess5lwbghr/2M_ES.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Laayoune_TV_logo.svg/200px-Laayoune_TV_logo.svg.png',category:'Moroccan'),
   Channel(id:'arryadia',name:'Arryadia',url:'https://cdn-01.live2.tv/streamers/arryadia/index.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Arryadia_logo.svg/200px-Arryadia_logo.svg.png',category:'Sports'),
