@@ -31,21 +31,39 @@ jobs:
           echo "flutter.sdk=$FLUTTER_SDK" > android/local.properties
           echo "sdk.dir=$ANDROID_HOME"   >> android/local.properties
 
+      - name: Generate launcher icons
+        run: |
+          python3 - << 'PYEOF'
+          import struct, zlib, os
+          def make_png(size, r, g, b):
+              def chunk(tag, data):
+                  crc = zlib.crc32(tag + data) & 0xffffffff
+                  return struct.pack('>I', len(data)) + tag + data + struct.pack('>I', crc)
+              raw = b''.join(b'\x00' + bytes([r, g, b] * size) for _ in range(size))
+              return (b'\x89PNG\r\n\x1a\n'
+                      + chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 2, 0, 0, 0))
+                      + chunk(b'IDAT', zlib.compress(raw))
+                      + chunk(b'IEND', b''))
+          icons = {'mipmap-mdpi':48,'mipmap-hdpi':72,'mipmap-xhdpi':96,'mipmap-xxhdpi':144,'mipmap-xxxhdpi':192}
+          base = 'android/app/src/main/res'
+          for folder, size in icons.items():
+              path = os.path.join(base, folder)
+              os.makedirs(path, exist_ok=True)
+              png = make_png(size, 200, 16, 46)
+              for name in ('ic_launcher.png', 'ic_launcher_round.png'):
+                  open(os.path.join(path, name), 'wb').write(png)
+              print(f'done {folder}')
+          PYEOF
+
       - name: pub get
         run: flutter pub get
 
-      - name: Patch better_player namespace (AGP 8 fix)
+      - name: Patch better_player namespace
         run: |
           GRADLE=$(find ~/.pub-cache -name "build.gradle" -path "*/better_player*/android/build.gradle" 2>/dev/null | head -1)
-          if [ -n "$GRADLE" ]; then
-            if ! grep -q "namespace" "$GRADLE"; then
-              sed -i 's/android {/android {\n    namespace "com.jhomlala.better_player"/' "$GRADLE"
-              echo "✓ Patched: $GRADLE"
-            else
-              echo "✓ namespace already present"
-            fi
-          else
-            echo "⚠ better_player build.gradle not found"
+          if [ -n "$GRADLE" ] && ! grep -q "namespace" "$GRADLE"; then
+            sed -i 's/android {/android {\n    namespace "com.jhomlala.better_player"/' "$GRADLE"
+            echo "patched: $GRADLE"
           fi
 
       - name: Build Universal APK
