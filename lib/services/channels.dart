@@ -1,168 +1,65 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/channel.dart';
 
-// ════════════════════════════════════════════════════════════
-//  كيفاش تضيف قنواتك (HOW TO ADD YOUR CHANNELS)
-// ════════════════════════════════════════════════════════════
-//
-//  ① زيد قناة في القائمة kChannels هنا تحت (الأسهل)
-//  ② أو حط رابط JSON/M3U في kPlaylistUrl
-//
-//  شكل القناة:
-//  Channel(
-//    id:       'اسم فريد بدون مسافات',
-//    name:     'اسم القناة',
-//    url:      'https://example.com/stream.m3u8',
-//    logo:     'https://example.com/logo.png',
-//    category: 'Moroccan | Sports | News | Entertainment | Kids',
-//    headers:  {},   ← {} = يستخدم bypass headers تلقائياً
-//  ),
-//
-// ════════════════════════════════════════════════════════════
+const String kPrefPlaylistUrl = 'playlist_url';
 
-// رابط playlist خارجي (JSON أو M3U) — اتركه فارغاً إذا ما عندكش
-const String kPlaylistUrl = '';
-
-// ── Bypass Headers لـ *6 Maroc Telecom ──────────────────────
-const Map<String, String> kBypassHeaders = {
-  'Host': 'facebook.com',
-  'User-Agent': 'Mozilla/5.0 (Linux; Android 13; SM-S918B) '
-      'AppleWebKit/537.36 (KHTML, like Gecko) '
-      'Chrome/124.0.0.0 Mobile Safari/537.36',
-  'Connection': 'keep-alive',
+const Map<String, String> kSafeHeaders = {
+  'User-Agent': 'Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
   'Accept': '*/*',
-  'Referer': 'https://www.facebook.com/',
-  'Origin': 'https://www.facebook.com',
+  'Connection': 'keep-alive',
 };
 
-// ── قائمة القنوات ────────────────────────────────────────────
-const List<Channel> kChannels = [
-  // ── مغربية ──────────────────────────────────────────────
-  Channel(
-    id: 'al_aoula',
-    name: 'الأولى',
-    url: 'https://cdn-01.live2.tv/streamers/al-aoula/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Al_Aoula_logo.svg/200px-Al_Aoula_logo.svg.png',
-    category: 'Moroccan',
-  ),
-  Channel(
-    id: '2m',
-    name: '2M Maroc',
-    url: 'https://stream-lb.livemediama.com/2m-tnt/hls/master.m3u8',
-    logo: 'https://images.seeklogo.com/logo-png/31/1/chaine-2m-maroc-logo-png_seeklogo-310278.png',
-    category: 'Moroccan',
-  ),
-  Channel(
-    id: 'medi1',
-    name: 'Medi1 TV',
-    url: 'https://cdn-01.live2.tv/streamers/medi1tv/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Medi1tv_logo.svg/200px-Medi1tv_logo.svg.png',
-    category: 'Moroccan',
-  ),
-  Channel(
-    id: 'laayoune',
-    name: 'Laâyoune TV',
-    url: 'https://cdn-01.live2.tv/streamers/laayoune-tv/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Laayoune_TV_logo.svg/200px-Laayoune_TV_logo.svg.png',
-    category: 'Moroccan',
-  ),
-  Channel(
-    id: 'arrabia',
-    name: 'Al Arrabia',
-    url: 'https://cdn-01.live2.tv/streamers/al-arrabia/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Al_Arabiya_logo.svg/200px-Al_Arabiya_logo.svg.png',
-    category: 'Moroccan',
-  ),
+const Map<String, String> kBypassHeaders = {
+  'User-Agent': 'Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+  'Referer': 'https://www.facebook.com/',
+  'Origin': 'https://www.facebook.com',
+  'Accept': '*/*',
+  'Connection': 'keep-alive',
+};
 
-  // ── رياضة ────────────────────────────────────────────────
-  Channel(
-    id: 'arryadia',
-    name: 'Arryadia',
-    url: 'https://cdn-01.live2.tv/streamers/arryadia/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Arryadia_logo.svg/200px-Arryadia_logo.svg.png',
-    category: 'Sports',
-  ),
-  Channel(
-    id: 'bein1',
-    name: 'beIN Sports 1',
-    url: 'https://YOUR_PROVIDER/bein1/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/BeIN_Sports_logo.svg/200px-BeIN_Sports_logo.svg.png',
-    category: 'Sports',
-  ),
-  Channel(
-    id: 'bein2',
-    name: 'beIN Sports 2',
-    url: 'https://YOUR_PROVIDER/bein2/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/BeIN_Sports_logo.svg/200px-BeIN_Sports_logo.svg.png',
-    category: 'Sports',
-  ),
-
-  // ── أخبار ────────────────────────────────────────────────
-  Channel(
-    id: 'aljazeera',
-    name: 'Al Jazeera',
-    url: 'https://live-hls-web-aja.getaj.net/AJA/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Aljazeera_Logo.svg/200px-Aljazeera_Logo.svg.png',
-    category: 'News',
-  ),
-  Channel(
-    id: 'france24ar',
-    name: 'France 24 عربي',
-    url: 'https://f24hls-i.akamaihd.net/hls/live/221147/F24_AR_HI_HLS/master.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/France_24_logo.svg/200px-France_24_logo.svg.png',
-    category: 'News',
-  ),
-
-  // ── ترفيه ────────────────────────────────────────────────
-  Channel(
-    id: 'mbc1',
-    name: 'MBC 1',
-    url: 'https://YOUR_PROVIDER/mbc1/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/MBC1_logo.svg/200px-MBC1_logo.svg.png',
-    category: 'Entertainment',
-  ),
-  Channel(
-    id: 'mbc3',
-    name: 'MBC 3',
-    url: 'https://YOUR_PROVIDER/mbc3/index.m3u8',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/MBC3_Logo.svg/200px-MBC3_Logo.svg.png',
-    category: 'Kids',
-  ),
+const List<Channel> kBuiltinChannels = [
+  Channel(id:'al_aoula',name:'الأولى',url:'https://cdn-01.live2.tv/streamers/al-aoula/index.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Al_Aoula_logo.svg/200px-Al_Aoula_logo.svg.png',category:'Moroccan'),
+  Channel(id:'2m',name:'2M Maroc',url:'https://cdn-01.live2.tv/streamers/2m/index.m3u8|https://d2qh3gh0k5vp3v.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-n6pess5lwbghr/2M_ES.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/2M_logo.svg/200px-2M_logo.svg.png',category:'Moroccan'),
+  Channel(id:'medi1',name:'Medi1 TV',url:'https://cdn-01.live2.tv/streamers/medi1tv/index.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Medi1tv_logo.svg/200px-Medi1tv_logo.svg.png',category:'Moroccan'),
+  Channel(id:'laayoune',name:'Laâyoune TV',url:'https://cdn-01.live2.tv/streamers/laayoune-tv/index.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Laayoune_TV_logo.svg/200px-Laayoune_TV_logo.svg.png',category:'Moroccan'),
+  Channel(id:'arryadia',name:'Arryadia',url:'https://cdn-01.live2.tv/streamers/arryadia/index.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Arryadia_logo.svg/200px-Arryadia_logo.svg.png',category:'Sports'),
+  Channel(id:'aljazeera',name:'Al Jazeera',url:'https://live-hls-web-aja.getaj.net/AJA/index.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Aljazeera_Logo.svg/200px-Aljazeera_Logo.svg.png',category:'News'),
+  Channel(id:'france24ar',name:'France 24 عربي',url:'https://f24hls-i.akamaihd.net/hls/live/221147/F24_AR_HI_HLS/master.m3u8',logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/France_24_logo.svg/200px-France_24_logo.svg.png',category:'News'),
 ];
 
-// ── Service ──────────────────────────────────────────────────
 class ChannelService {
+  static Future<String> getSavedUrl() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getString(kPrefPlaylistUrl) ?? '';
+  }
+  static Future<void> saveUrl(String url) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString(kPrefPlaylistUrl, url.trim());
+  }
   static Future<List<Channel>> load() async {
-    final all = <Channel>[...kChannels];
-
-    if (kPlaylistUrl.isNotEmpty) {
+    final playlistUrl = await getSavedUrl();
+    final all = <Channel>[];
+    if (playlistUrl.isNotEmpty) {
       try {
-        final res = await http
-            .get(Uri.parse(kPlaylistUrl), headers: kBypassHeaders)
-            .timeout(const Duration(seconds: 10));
+        final res = await http.get(Uri.parse(playlistUrl), headers: kSafeHeaders).timeout(const Duration(seconds: 15));
         if (res.statusCode == 200) {
           final body = res.body.trim();
           if (body.startsWith('[')) {
-            final list = json.decode(body) as List;
-            all.insertAll(0, list.map((e) => Channel.fromJson(e)));
+            all.addAll((json.decode(body) as List).map((e) => Channel.fromJson(e)));
           } else if (body.startsWith('#EXTM3U')) {
-            all.insertAll(0, _parseM3u(body));
+            all.addAll(_parseM3u(body));
           }
         }
       } catch (_) {}
     }
-
-    // Apply bypass headers to every channel
+    if (all.isEmpty) all.addAll(kBuiltinChannels);
     return all.map((ch) {
-      final h = Map<String, String>.from(kBypassHeaders)..addAll(ch.headers);
-      return Channel(
-        id: ch.id, name: ch.name, url: ch.url,
-        logo: ch.logo, category: ch.category, headers: h,
-      );
+      final h = Map<String, String>.from(kSafeHeaders)..addAll(ch.headers);
+      return Channel(id:ch.id,name:ch.name,url:ch.url,logo:ch.logo,category:ch.category,headers:h);
     }).toList();
   }
-
   static List<Channel> _parseM3u(String body) {
     final result = <Channel>[];
     final lines = body.split('\n');
@@ -174,7 +71,7 @@ class ChannelService {
       final name = RegExp(r',(.+)$').firstMatch(line)?.group(1)?.trim() ?? 'CH';
       final logo = RegExp(r'tvg-logo="([^"]*)"').firstMatch(line)?.group(1)?.trim() ?? '';
       final cat  = RegExp(r'group-title="([^"]*)"').firstMatch(line)?.group(1)?.trim() ?? 'General';
-      result.add(Channel(id: 'm3u_$i', name: name, url: next, logo: logo, category: cat));
+      result.add(Channel(id:'m3u_$i',name:name,url:next,logo:logo,category:cat));
     }
     return result;
   }
