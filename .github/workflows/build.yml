@@ -34,6 +34,20 @@ jobs:
       - name: pub get
         run: flutter pub get
 
+      - name: Patch better_player namespace (AGP 8 fix)
+        run: |
+          GRADLE=$(find ~/.pub-cache -name "build.gradle" -path "*/better_player*/android/build.gradle" 2>/dev/null | head -1)
+          if [ -n "$GRADLE" ]; then
+            if ! grep -q "namespace" "$GRADLE"; then
+              sed -i 's/android {/android {\n    namespace "com.jhomlala.better_player"/' "$GRADLE"
+              echo "✓ Patched: $GRADLE"
+            else
+              echo "✓ namespace already present"
+            fi
+          else
+            echo "⚠ better_player build.gradle not found"
+          fi
+
       - name: Build Universal APK
         run: flutter build apk --release --no-tree-shake-icons --android-skip-build-dependency-validation
 
