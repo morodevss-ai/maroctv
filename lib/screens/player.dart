@@ -32,8 +32,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
   void _play(int idx) {
     setState(() { _loading = true; _error = false; _idx = idx; });
 
-    // ── Inject bypass headers here ──────────────────────────
-    final headers = Map<String, String>.from(kBypassHeaders)
+    // ── Use only safe headers (Host: facebook.com breaks CDN) ──
+    final headers = Map<String, String>.from(kSafeHeaders)
       ..addAll(widget.playlist[idx].headers);
 
     final src = BetterPlayerDataSource(
@@ -43,8 +43,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
       liveStream: true,
       videoFormat: BetterPlayerVideoFormat.hls,
       bufferingConfiguration: const BetterPlayerBufferingConfiguration(
-        minBufferMs: 2000, maxBufferMs: 8000,
-        bufferForPlaybackMs: 1000, bufferForPlaybackAfterRebufferMs: 2000,
+        minBufferMs: 3000, maxBufferMs: 15000,
+        bufferForPlaybackMs: 1500, bufferForPlaybackAfterRebufferMs: 3000,
       ),
     );
 

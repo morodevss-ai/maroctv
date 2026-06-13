@@ -4,7 +4,9 @@ import 'package:shimmer/shimmer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/channel.dart';
 import '../services/channels.dart';
+import '../services/proxy.dart';
 import 'player.dart';
+import 'settings.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   String _category = 'All';
   String _search = '';
+  bool _proxyOn = false;
 
   static const _icons = <String, IconData>{
     'All':           Icons.grid_view_rounded,
@@ -41,6 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadFavs();
     _loadChannels();
+    _checkProxy();
+  }
+
+  Future<void> _checkProxy() async {
+    final p = await ProxyService.getProxyUrl();
+    if (mounted) setState(() => _proxyOn = p.isNotEmpty);
   }
 
   Future<void> _loadFavs() async {
@@ -125,9 +134,36 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.5)),
             const Spacer(),
+            if (_proxyOn)
+              Container(
+                margin: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.greenAccent.withOpacity(0.4)),
+                ),
+                child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.shield_rounded, color: Colors.greenAccent, size: 11),
+                  SizedBox(width: 3),
+                  Text('Proxy', style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                ]),
+              ),
             IconButton(
               icon: const Icon(Icons.refresh, color: Colors.white60, size: 20),
               onPressed: _loadChannels,
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings_rounded, color: Colors.white60, size: 20),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsScreen(
+                  onSaved: () {
+                    _checkProxy();
+                    _loadChannels();
+                  },
+                )),
+              ),
             ),
           ]),
         ),
